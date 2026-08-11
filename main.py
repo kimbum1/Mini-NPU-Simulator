@@ -18,12 +18,21 @@ def is_equal(a, b, epsilon=1e-9):
     return abs(a - b) < epsilon
 
 def normalize_label(label):
-    """라벨 정규화 (+ -> Cross, x -> X)"""
-    label = label.lower()
-    if label == '+' or label == 'cross':
-        return 'Cross'
-    elif label == 'x':
-        return 'X'
+    if label == '+': return "Cross"
+    if label.lower() == 'x': return "X"
+    """
+    [설계 의도: 유지보수성 및 확장성 향상]
+    1. 유지보수성: '+', 'plus', 'Cross' 등 다양하게 입력될 수 있는 라벨을 하나의 표준(Cross, X)으로 통합 관리하여 코드의 일관성을 유지합니다.
+    2. 확장성: 향후 새로운 패턴(예: 'Square', 'Triangle')이 추가되더라도, 메인 로직을 수정하지 않고 이 함수 내에 매핑 규칙만 추가하면 즉시 대응이 가능합니다.
+    라벨 표준화 매핑 규칙:
+    - '+' 또는 'Cross' 관련 입력 -> 'Cross'로 변환
+    - 'x' 또는 'X' 관련 입력 -> 'X'로 변환
+    """
+    label_str = str(label).strip().lower()
+    if label_str in ['+', 'cross', 'plus']:
+        return "Cross"
+    elif label_str in ['x', 'multiply']:
+        return "X"
     return label
 
 def measure_time(pattern, filter_matrix, iterations=10):
@@ -38,43 +47,52 @@ def measure_time(pattern, filter_matrix, iterations=10):
 # 2. 모드 1: 사용자 입력 (3x3)
 # ==========================================
 def mode1():
-    print("\n#-----------------------------------")
-    print("# [1] 필터 입력")
-    print("#-----------------------------------")
-    
-    try:
-        print("필터 A (3줄 입력, 공백 구분)")
-        filter_a = [list(map(float, input().split())) for _ in range(3)]
-        print("\n필터 B (3줄 입력, 공백 구분)")
-        filter_b = [list(map(float, input().split())) for _ in range(3)]
-        
-        print("\n#-----------------------------------")
-        print("# [2] 패턴 입력")
-        print("#-----------------------------------")
-        print("패턴 (3줄 입력, 공백 구분)")
-        pattern = [list(map(float, input().split())) for _ in range(3)]
-        
-        # MAC 연산 및 시간 측정
-        score_a = mac_calculate(pattern, filter_a)
-        score_b = mac_calculate(pattern, filter_b)
-        avg_time = measure_time(pattern, filter_a) # 시간 측정용
-        
-        print("\n#-----------------------------------")
-        print("# [3] MAC 결과")
-        print("#-----------------------------------")
-        print(f"A 점수: {score_a}")
-        print(f"B 점수: {score_b}")
-        print(f"연산 시간(평균/10회): {avg_time:.3f} ms")
-        
-        if is_equal(score_a, score_b):
-            print("판정: 판정 불가 (UNDECIDED)")
-        elif score_a > score_b:
-            print("판정: A")
-        else:
-            print("판정: B")
+    while True:  # 재입력 유도를 위한 루프 추가
+        try:
+            print("\n#-----------------------------------")
+            print("# [1] 필터 입력")
+            print("#-----------------------------------")
             
-    except ValueError:
-        print("입력 형식 오류: 각 줄에 3개의 숫자를 공백으로 구분해 입력하세요.")
+            print("필터 A (3줄 입력, 공백 구분)")
+            filter_a = [list(map(float, input().split())) for _ in range(3)]
+            if any(len(row) != 3 for row in filter_a): raise ValueError # 개수 검증
+            
+            print("\n필터 B (3줄 입력, 공백 구분)")
+            filter_b = [list(map(float, input().split())) for _ in range(3)]
+            if any(len(row) != 3 for row in filter_b): raise ValueError # 개수 검증
+            
+            print("\n#-----------------------------------")
+            print("# [2] 패턴 입력")
+            print("#-----------------------------------")
+            print("패턴 (3줄 입력, 공백 구분)")
+            pattern = [list(map(float, input().split())) for _ in range(3)]
+            if any(len(row) != 3 for row in pattern): raise ValueError # 개수 검증
+            
+            # MAC 연산 및 시간 측정
+            score_a = mac_calculate(pattern, filter_a)
+            score_b = mac_calculate(pattern, filter_b)
+            avg_time = measure_time(pattern, filter_a) 
+            
+            print("\n#-----------------------------------")
+            print("# [3] MAC 결과")
+            print("#-----------------------------------")
+            print(f"A 점수: {score_a}")
+            print(f"B 점수: {score_b}")
+            print(f"연산 시간(평균/10회): {avg_time:.3f} ms")
+            
+            if is_equal(score_a, score_b):
+            # 정책: 사용자에게 분석 불능 상태를 명확히 알림 (UNDECIDED)
+                print("판정: 판정 불가 (UNDECIDED)")
+            elif score_a > score_b:
+                print("판정: A")
+            else:
+                print("판정: B")
+            
+            break # 모든 입력과 계산이 성공하면 루프 탈출
+                
+        except ValueError:
+            print("\n입력 형식 오류: 각 줄에 3개의 숫자를 공백으로 구분해 입력하세요.")
+            print("처음부터 다시 입력을 시작합니다.")
 
 # ==========================================
 # 3. 모드 2: JSON 데이터 분석
@@ -142,24 +160,37 @@ def mode2():
         print(f"Cross 점수: {score_cross}")
         print(f"X 점수: {score_x}")
         
-        # 판정 로직
+        # [Mode 1 판정 로직]
         if is_equal(score_cross, score_x):
+        # 정책: 사용자에게 두 필터의 특징이 동일하게 나타났음을 명확히 알리기 위해 'UNDECIDED'로 판정
             decision = "UNDECIDED"
+            print("판정: 판정 불가 (UNDECIDED)")
         elif score_cross > score_x:
             decision = "Cross"
+            print("판정: Cross (+)")
         else:
             decision = "X"
+            print("판정: X (x)")
             
-        # PASS / FAIL 확인
-        if decision == expected:
-            print(f"판정: {decision} | expected: {expected} | PASS")
+        # [Mode 2 판정 로직]
+        if is_equal(score_cross, score_x):
+            # 정책: 자동 검증 모드에서는 판정의 모호성을 제거하고 신뢰도를 높이기 위해 
+            decision = "UNDECIDED"
+            result = "FAIL"
+        elif decision == expected: # expected_label을 expected로 수정
+            result = "PASS"
+        else:
+            result = "FAIL"
+
+        if result == "PASS":
             pass_count += 1
         else:
-            reason = "동점(UNDECIDED) 규칙" if decision == "UNDECIDED" else "점수 오판정"
-            print(f"판정: {decision} | expected: {expected} | FAIL ({reason})")
             fail_count += 1
-            fail_cases.append(f"- {key}: {reason}에 따라 FAIL")
+            fail_cases.append(f"{key}: 예상({expected}), 실제({decision})")
 
+        print(f"판정: {decision} (정답: {expected}) [{result}]")
+
+  
     # 성능 분석 표 출력
     print("\n#-----------------------------------")
     print("# [3] 성능 분석 (평균/10회)")
