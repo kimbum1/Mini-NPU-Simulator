@@ -76,3 +76,7 @@
 | **핵심 병목** | 연산 유닛의 순차적 실행 한계 | 메모리 대역폭 및 데이터 전송 속도 |
 | **스케일 영향** | 데이터가 커질수록 시간 선형 증가 | 데이터가 커질수록 메모리 병목 심화 |
 | **최적화 방향** | 알고리즘 복잡도 감소 | 데이터 재사용성 극대화 (Tiling) |
+
+<img width="416" height="882" alt="스크린샷 2026-08-17 오전 1 53 09" src="https://github.com/user-attachments/assets/ffb0e74b-8033-42e7-9242-0b58a520cdc6" />
+<img width="237" height="116" alt="스크린샷 2026-08-17 오전 1 54 29" src="https://github.com/user-attachments/assets/90b376cf-ef88-409b-97b0-7066157d00db" />
+<img width="326" height="505" alt="스크린샷 2026-08-17 오전 1 54 10" src="https://github.com/user-attachments/assets/73af619b-52d1-4ad8-8e39-208514b9c71d" />
